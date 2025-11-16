@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+.venv
+
+# Environment Variables & Secrets
+.env
+.env.local
+*.env
+secrets.yml
+*.key
+*.pem
+.aws/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+*.log
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Databases
+*.db
+*.sqlite
+
+# AI Models (large files)
+*.h5
+*.pkl
+*.pt
+models/
