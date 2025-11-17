@@ -6,7 +6,7 @@ from sqlalchemy.pool import StaticPool
 
 from app.config.database import Base, get_db
 from app.main import app
-from app.models.menu import MenuItem
+from app.models.menu import MenuItem  # noqa: F401
 
 # Use in-memory SQLite for tests (fast!)
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///:memory:"

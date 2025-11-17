@@ -29,7 +29,7 @@ class MenuService:
     @staticmethod
     def get_available_items(db: Session) -> List[MenuItem]:
         """Get only available menu items"""
-        return db.query(MenuItem).filter(MenuItem.is_available == True).all()
+        return db.query(MenuItem).filter(MenuItem.is_available_(True)).all()
 
     @staticmethod
     def create_item(db: Session, item: MenuItemCreate) -> MenuItem:

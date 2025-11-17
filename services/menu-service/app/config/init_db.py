@@ -1,5 +1,5 @@
 from app.config.database import Base, engine
-from app.models.menu import MenuItem
+from app.models.menu import MenuItem  # noqa: F401
 
 
 def init_db():
