@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: smartmenu-postgres
+    environment:
+      POSTGRES_USER: smartmenu_user
+      POSTGRES_PASSWORD: smartmenu_pass
+      POSTGRES_DB: smartmenu_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U smartmenu_user -d smartmenu_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - smartmenu-network
+
+  # Menu Service
+  menu-service:
+    build:
+      context: ./services/menu-service
+      dockerfile: Dockerfile
+    container_name: smartmenu-menu-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://smartmenu_user:smartmenu_pass@postgres:5432/smartmenu_db
+      DEBUG: "True"
+    ports:
+      - "8001:8001"
+    networks:
+      - smartmenu-network
+    restart: unless-stopped
+
+# Named volumes for data persistence
+volumes:
+  postgres_data:
+    driver: local
+
+# Custom network
+networks:
+  smartmenu-network:
+    driver: bridge
