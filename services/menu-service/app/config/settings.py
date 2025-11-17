@@ -14,8 +14,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     
     # Database Settings
-    DATABASE_URL: str = "postgresql://user:password@localhost:5432/smartmenu_db"
-    
+    DATABASE_URL: str = "postgresql://smartmenu_user:smartmenu_pass@localhost:5432/smartmenu_db"
     # Redis Cache Settings
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379

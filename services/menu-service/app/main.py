@@ -1,12 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config.settings import settings
+from app.routes import menu_routes
 
 # Create FastAPI app
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="Menu Service API for SmartMenu AI",
+    description="Menu Service API for SmartMenu AI - Manage restaurant menu items",
 )
 
 # Configure CORS
@@ -17,6 +18,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(menu_routes.router, prefix=settings.API_PREFIX)
 
 # Health check endpoint
 @app.get("/health")
@@ -40,16 +44,6 @@ async def root():
     return {
         "message": f"Welcome to {settings.APP_NAME}",
         "version": settings.APP_VERSION,
-        "docs": "/docs"
-    }
-
-# Menu endpoints (we'll add these next)
-@app.get(f"{settings.API_PREFIX}/menu")
-async def get_menu():
-    """
-    Get all menu items
-    """
-    return {
-        "message": "Menu endpoint - Coming soon!",
-        "items": []
+        "docs": "/docs",
+        "health": "/health"
     }
