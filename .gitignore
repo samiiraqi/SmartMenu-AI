@@ -50,3 +50,9 @@ package-lock.json
 *.pkl
 *.pt
 models/
+
+# Testing
+.pytest_cache/
+htmlcov/
+.coverage
+*.cover
