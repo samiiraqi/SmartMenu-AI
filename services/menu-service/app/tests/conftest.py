@@ -4,8 +4,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.main import app
 from app.config.database import Base, get_db
+from app.main import app
 from app.models.menu import MenuItem
 
 # Use in-memory SQLite for tests (fast!)
@@ -39,12 +39,13 @@ def client(test_db):
     """
     Create a test client with test database
     """
+
     def override_get_db():
         try:
             yield test_db
         finally:
             test_db.close()
-    
+
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:
         yield test_client

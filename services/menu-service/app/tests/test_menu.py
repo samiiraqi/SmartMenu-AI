@@ -27,7 +27,7 @@ class TestMenuEndpoints:
             "price": 12.99,
             "category": "Pizza",
             "is_available": True,
-            "prep_time": 15
+            "prep_time": 15,
         }
         response = client.post("/api/v1/menu/", json=new_item)
         assert response.status_code == status.HTTP_201_CREATED
@@ -46,20 +46,20 @@ class TestMenuEndpoints:
                 "description": "Delicious pizza",
                 "price": 12.99,
                 "category": "Main",
-                "prep_time": 15
+                "prep_time": 15,
             },
             {
                 "name": "Salad",
                 "description": "Fresh salad",
                 "price": 8.50,
                 "category": "Appetizer",
-                "prep_time": 10
-            }
+                "prep_time": 10,
+            },
         ]
-        
+
         for item in items:
             client.post("/api/v1/menu/", json=item)
-        
+
         response = client.get("/api/v1/menu/")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -75,11 +75,11 @@ class TestMenuEndpoints:
             "description": "Test description",
             "price": 10.99,
             "category": "Pizza",
-            "prep_time": 15
+            "prep_time": 15,
         }
         create_response = client.post("/api/v1/menu/", json=new_item)
         item_id = create_response.json()["id"]
-        
+
         # Get item by ID
         response = client.get(f"/api/v1/menu/{item_id}")
         assert response.status_code == status.HTTP_200_OK
@@ -98,12 +98,17 @@ class TestMenuEndpoints:
         items = [
             {"name": "Pizza", "price": 12.99, "category": "Pizza", "prep_time": 15},
             {"name": "Pasta", "price": 11.99, "category": "Pasta", "prep_time": 20},
-            {"name": "Another Pizza", "price": 14.99, "category": "Pizza", "prep_time": 15}
+            {
+                "name": "Another Pizza",
+                "price": 14.99,
+                "category": "Pizza",
+                "prep_time": 15,
+            },
         ]
-        
+
         for item in items:
             client.post("/api/v1/menu/", json=item)
-        
+
         response = client.get("/api/v1/menu/category/Pizza")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -116,7 +121,7 @@ class TestMenuEndpoints:
             "name": "Invalid Item",
             "price": -5.00,  # Negative price!
             "category": "Test",
-            "prep_time": 10
+            "prep_time": 10,
         }
         response = client.post("/api/v1/menu/", json=invalid_item)
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -128,11 +133,11 @@ class TestMenuEndpoints:
             "name": "Original Pizza",
             "price": 12.99,
             "category": "Pizza",
-            "prep_time": 15
+            "prep_time": 15,
         }
         create_response = client.post("/api/v1/menu/", json=new_item)
         item_id = create_response.json()["id"]
-        
+
         # Update item
         update_data = {"name": "Updated Pizza", "price": 14.99}
         response = client.put(f"/api/v1/menu/{item_id}", json=update_data)
@@ -148,15 +153,15 @@ class TestMenuEndpoints:
             "name": "To Delete",
             "price": 9.99,
             "category": "Test",
-            "prep_time": 10
+            "prep_time": 10,
         }
         create_response = client.post("/api/v1/menu/", json=new_item)
         item_id = create_response.json()["id"]
-        
+
         # Delete item
         response = client.delete(f"/api/v1/menu/{item_id}")
         assert response.status_code == status.HTTP_204_NO_CONTENT
-        
+
         # Verify deleted
         get_response = client.get(f"/api/v1/menu/{item_id}")
         assert get_response.status_code == status.HTTP_404_NOT_FOUND

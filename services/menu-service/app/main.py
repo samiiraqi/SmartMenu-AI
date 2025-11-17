@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
 from app.config.settings import settings
 from app.routes import menu_routes
 
@@ -22,6 +23,7 @@ app.add_middleware(
 # Include routers
 app.include_router(menu_routes.router, prefix=settings.API_PREFIX)
 
+
 # Health check endpoint
 @app.get("/health")
 async def health_check():
@@ -32,8 +34,9 @@ async def health_check():
     return {
         "status": "healthy",
         "service": settings.APP_NAME,
-        "version": settings.APP_VERSION
+        "version": settings.APP_VERSION,
     }
+
 
 # Root endpoint
 @app.get("/")
@@ -45,5 +48,5 @@ async def root():
         "message": f"Welcome to {settings.APP_NAME}",
         "version": settings.APP_VERSION,
         "docs": "/docs",
-        "health": "/health"
+        "health": "/health",
     }
