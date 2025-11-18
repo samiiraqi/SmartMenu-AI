@@ -1,42 +1,32 @@
+from typing import List
+
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    """
-    Application Settings
-    Loads configuration from environment variables
-    """
-
-    # API Settings
     APP_NAME: str = "Order Service"
     APP_VERSION: str = "1.0.0"
     API_PREFIX: str = "/api/v1"
-    DEBUG: bool = True
+    DEBUG: bool = False
 
-    # Database Settings
-    DATABASE_URL: str = (
-        "postgresql://smartmenu_user:smartmenu_pass@localhost:5432/smartmenu_orders_db"
-    )
+    DATABASE_URL: str
 
-    # Redis Cache Settings
-    REDIS_HOST: str = "localhost"
-    REDIS_PORT: int = 6379
-
-    # Security
     SECRET_KEY: str = "your-secret-key-change-in-production"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
-    # CORS Settings
-    ALLOWED_ORIGINS: list = ["http://localhost:3000", "http://localhost:8000"]
+    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:8000"
 
-    # Menu Service URL (microservice communication!)
     MENU_SERVICE_URL: str = "http://localhost:8001"
 
     class Config:
         env_file = ".env"
+        env_file_encoding = "utf-8"
         case_sensitive = True
 
+    @property
+    def allowed_origins_list(self) -> List[str]:
+        return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
 
-# Create settings instance
+
 settings = Settings()
