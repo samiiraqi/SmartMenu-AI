@@ -32,7 +32,9 @@ class OrderService:
             return None
 
     @staticmethod
-    async def create_order(db: Session, order_data: OrderCreate, customer_id: int) -> Order:
+    async def create_order(
+        db: Session, order_data: OrderCreate, customer_id: int
+    ) -> Order:
         """Create a new order with items"""
         # Calculate total and validate menu items
         total_amount = 0

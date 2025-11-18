@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.config.database import get_db
-from app.schemas.order import Order, OrderCreate, OrderSummary, OrderUpdate
+from app.schemas.order import Order, OrderCreate, OrderUpdate
 from app.services.order_service import OrderService
 
 # Create router
