@@ -21,7 +21,7 @@ def seed_order_data():
 
     # Sample orders with various statuses
     now = datetime.utcnow()
-    
+
     orders = [
         # Order 1 - Completed (30 mins ago)
         Order(
@@ -34,15 +34,29 @@ def seed_order_data():
             created_at=now - timedelta(minutes=30),
             updated_at=now - timedelta(minutes=5),
             items=[
-                OrderItem(menu_item_id=2, menu_item_name="Pepperoni Pizza", 
-                         menu_item_price=14.99, quantity=1, subtotal=14.99),
-                OrderItem(menu_item_id=11, menu_item_name="Caesar Salad", 
-                         menu_item_price=8.99, quantity=1, subtotal=8.99),
-                OrderItem(menu_item_id=16, menu_item_name="Coca Cola", 
-                         menu_item_price=2.99, quantity=1, subtotal=2.99),
-            ]
+                OrderItem(
+                    menu_item_id=2,
+                    menu_item_name="Pepperoni Pizza",
+                    menu_item_price=14.99,
+                    quantity=1,
+                    subtotal=14.99,
+                ),
+                OrderItem(
+                    menu_item_id=11,
+                    menu_item_name="Caesar Salad",
+                    menu_item_price=8.99,
+                    quantity=1,
+                    subtotal=8.99,
+                ),
+                OrderItem(
+                    menu_item_id=16,
+                    menu_item_name="Coca Cola",
+                    menu_item_price=2.99,
+                    quantity=1,
+                    subtotal=2.99,
+                ),
+            ],
         ),
-        
         # Order 2 - Ready for pickup (10 mins ago)
         Order(
             customer_id=5,  # jane_smith
@@ -54,13 +68,22 @@ def seed_order_data():
             created_at=now - timedelta(minutes=20),
             updated_at=now - timedelta(minutes=10),
             items=[
-                OrderItem(menu_item_id=8, menu_item_name="Classic Cheeseburger", 
-                         menu_item_price=9.99, quantity=2, subtotal=19.98),
-                OrderItem(menu_item_id=17, menu_item_name="Fresh Orange Juice", 
-                         menu_item_price=4.99, quantity=1, subtotal=4.99),
-            ]
+                OrderItem(
+                    menu_item_id=8,
+                    menu_item_name="Classic Cheeseburger",
+                    menu_item_price=9.99,
+                    quantity=2,
+                    subtotal=19.98,
+                ),
+                OrderItem(
+                    menu_item_id=17,
+                    menu_item_name="Fresh Orange Juice",
+                    menu_item_price=4.99,
+                    quantity=1,
+                    subtotal=4.99,
+                ),
+            ],
         ),
-        
         # Order 3 - Currently being prepared
         Order(
             customer_id=6,  # bob_wilson
@@ -72,13 +95,22 @@ def seed_order_data():
             created_at=now - timedelta(minutes=15),
             updated_at=now - timedelta(minutes=5),
             items=[
-                OrderItem(menu_item_id=5, menu_item_name="Spaghetti Carbonara", 
-                         menu_item_price=11.99, quantity=2, subtotal=23.98),
-                OrderItem(menu_item_id=13, menu_item_name="Tiramisu", 
-                         menu_item_price=6.99, quantity=2, subtotal=13.98),
-            ]
+                OrderItem(
+                    menu_item_id=5,
+                    menu_item_name="Spaghetti Carbonara",
+                    menu_item_price=11.99,
+                    quantity=2,
+                    subtotal=23.98,
+                ),
+                OrderItem(
+                    menu_item_id=13,
+                    menu_item_name="Tiramisu",
+                    menu_item_price=6.99,
+                    quantity=2,
+                    subtotal=13.98,
+                ),
+            ],
         ),
-        
         # Order 4 - Just confirmed
         Order(
             customer_id=4,  # john_doe again
@@ -90,19 +122,43 @@ def seed_order_data():
             created_at=now - timedelta(minutes=5),
             updated_at=now - timedelta(minutes=3),
             items=[
-                OrderItem(menu_item_id=1, menu_item_name="Margherita Pizza", 
-                         menu_item_price=12.99, quantity=1, subtotal=12.99),
-                OrderItem(menu_item_id=7, menu_item_name="Fettuccine Alfredo", 
-                         menu_item_price=12.99, quantity=1, subtotal=12.99),
-                OrderItem(menu_item_id=12, menu_item_name="Greek Salad", 
-                         menu_item_price=9.99, quantity=1, subtotal=9.99),
-                OrderItem(menu_item_id=14, menu_item_name="Chocolate Cake", 
-                         menu_item_price=5.99, quantity=1, subtotal=5.99),
-                OrderItem(menu_item_id=18, menu_item_name="Iced Coffee", 
-                         menu_item_price=3.99, quantity=1, subtotal=3.99),
-            ]
+                OrderItem(
+                    menu_item_id=1,
+                    menu_item_name="Margherita Pizza",
+                    menu_item_price=12.99,
+                    quantity=1,
+                    subtotal=12.99,
+                ),
+                OrderItem(
+                    menu_item_id=7,
+                    menu_item_name="Fettuccine Alfredo",
+                    menu_item_price=12.99,
+                    quantity=1,
+                    subtotal=12.99,
+                ),
+                OrderItem(
+                    menu_item_id=12,
+                    menu_item_name="Greek Salad",
+                    menu_item_price=9.99,
+                    quantity=1,
+                    subtotal=9.99,
+                ),
+                OrderItem(
+                    menu_item_id=14,
+                    menu_item_name="Chocolate Cake",
+                    menu_item_price=5.99,
+                    quantity=1,
+                    subtotal=5.99,
+                ),
+                OrderItem(
+                    menu_item_id=18,
+                    menu_item_name="Iced Coffee",
+                    menu_item_price=3.99,
+                    quantity=1,
+                    subtotal=3.99,
+                ),
+            ],
         ),
-        
         # Order 5 - Pending (just received)
         Order(
             customer_id=5,  # jane_smith
@@ -114,13 +170,28 @@ def seed_order_data():
             created_at=now - timedelta(minutes=2),
             updated_at=now - timedelta(minutes=2),
             items=[
-                OrderItem(menu_item_id=3, menu_item_name="Vegetarian Pizza", 
-                         menu_item_price=13.99, quantity=1, subtotal=13.99),
-                OrderItem(menu_item_id=10, menu_item_name="Veggie Burger", 
-                         menu_item_price=10.99, quantity=1, subtotal=10.99),
-                OrderItem(menu_item_id=11, menu_item_name="Caesar Salad", 
-                         menu_item_price=8.99, quantity=1, subtotal=8.99),
-            ]
+                OrderItem(
+                    menu_item_id=3,
+                    menu_item_name="Vegetarian Pizza",
+                    menu_item_price=13.99,
+                    quantity=1,
+                    subtotal=13.99,
+                ),
+                OrderItem(
+                    menu_item_id=10,
+                    menu_item_name="Veggie Burger",
+                    menu_item_price=10.99,
+                    quantity=1,
+                    subtotal=10.99,
+                ),
+                OrderItem(
+                    menu_item_id=11,
+                    menu_item_name="Caesar Salad",
+                    menu_item_price=8.99,
+                    quantity=1,
+                    subtotal=8.99,
+                ),
+            ],
         ),
     ]
 
