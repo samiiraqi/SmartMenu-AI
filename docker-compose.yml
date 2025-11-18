@@ -81,6 +81,85 @@ services:
     networks:
       - smartmenu-network
     restart: unless-stopped
+# User Service
+  user-service:
+    build:
+      context: ./services/user-service
+      dockerfile: Dockerfile
+    container_name: smartmenu-user-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://smartmenu_user:smartmenu_pass@postgres:5432/smartmenu_users_db
+      DEBUG: "True"
+    ports:
+      - "8004:8004"
+    networks:
+      - smartmenu-network
+    restart: unless-stopped
+
+  # Payment Service
+  payment-service:
+    build:
+      context: ./services/payment-service
+      dockerfile: Dockerfile
+    container_name: smartmenu-payment-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      order-service:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://smartmenu_user:smartmenu_pass@postgres:5432/smartmenu_payments_db
+      ORDER_SERVICE_URL: http://order-service:8002
+      USER_SERVICE_URL: http://user-service:8004
+      DEBUG: "True"
+    ports:
+      - "8005:8005"
+    networks:
+      - smartmenu-network
+    restart: unless-stopped
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ./services/notification-service
+      dockerfile: Dockerfile
+    container_name: smartmenu-notification-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://smartmenu_user:smartmenu_pass@postgres:5432/smartmenu_notifications_db
+      DEBUG: "True"
+    ports:
+      - "8006:8006"
+    networks:
+      - smartmenu-network
+    restart: unless-stopped
+
+  # Analytics Service
+  analytics-service:
+    build:
+      context: ./services/analytics-service
+      dockerfile: Dockerfile
+    container_name: smartmenu-analytics-service
+    depends_on:
+      menu-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+    environment:
+      MENU_SERVICE_URL: http://menu-service:8001
+      ORDER_SERVICE_URL: http://order-service:8002
+      PAYMENT_SERVICE_URL: http://payment-service:8005
+      DEBUG: "True"
+    ports:
+      - "8007:8007"
+    networks:
+      - smartmenu-network
+    restart: unless-stopped
 # Named volumes for data persistence
 volumes:
   postgres_data:
