@@ -38,7 +38,26 @@ services:
     networks:
       - smartmenu-network
     restart: unless-stopped
-
+# Order Service
+  order-service:
+    build:
+      context: ./services/order-service
+      dockerfile: Dockerfile
+    container_name: smartmenu-order-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      menu-service:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://smartmenu_user:smartmenu_pass@postgres:5432/smartmenu_orders_db
+      MENU_SERVICE_URL: http://menu-service:8001
+      DEBUG: "True"
+    ports:
+      - "8002:8002"
+    networks:
+      - smartmenu-network
+    restart: unless-stopped
 # Named volumes for data persistence
 volumes:
   postgres_data:
