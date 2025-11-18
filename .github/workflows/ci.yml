@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  test-menu:
     name: Test Menu Service
     runs-on: ubuntu-latest
     
@@ -42,6 +42,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Create .env file
+        working-directory: ./services/menu-service
+        run: |
+          cp .env.example .env
+
       - name: Run tests with coverage
         working-directory: ./services/menu-service
         env:
@@ -55,6 +60,61 @@ jobs:
           file: ./services/menu-service/coverage.xml
           flags: menu-service
           name: menu-service-coverage
+
+  test-order:
+    name: Test Order Service
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        working-directory: ./services/order-service
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Create .env file
+        working-directory: ./services/order-service
+        run: |
+          cp .env.example .env
+
+      - name: Run tests with coverage
+        working-directory: ./services/order-service
+        env:
+          DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/test_db
+          MENU_SERVICE_URL: http://localhost:8001
+        run: |
+          pytest --cov=app --cov-report=xml --cov-report=term
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./services/order-service/coverage.xml
+          flags: order-service
+          name: order-service-coverage
 
   lint:
     name: Code Quality
@@ -74,16 +134,28 @@ jobs:
           python -m pip install --upgrade pip
           pip install black flake8 isort
 
-      - name: Check code formatting with Black
+      - name: Check code formatting with Black - Menu Service
         working-directory: ./services/menu-service
         run: black --check app/
 
-      - name: Lint with flake8
+      - name: Lint with flake8 - Menu Service
         working-directory: ./services/menu-service
         run: flake8 app/ --max-line-length=100 --exclude=venv
 
-      - name: Check import sorting
+      - name: Check import sorting - Menu Service
         working-directory: ./services/menu-service
+        run: isort --check-only app/
+
+      - name: Check code formatting with Black - Order Service
+        working-directory: ./services/order-service
+        run: black --check app/
+
+      - name: Lint with flake8 - Order Service
+        working-directory: ./services/order-service
+        run: flake8 app/ --max-line-length=100 --exclude=venv
+
+      - name: Check import sorting - Order Service
+        working-directory: ./services/order-service
         run: isort --check-only app/
 
   security:
@@ -104,19 +176,29 @@ jobs:
           python -m pip install --upgrade pip
           pip install bandit safety
 
-      - name: Run Bandit security scan
+      - name: Run Bandit security scan - Menu Service
         working-directory: ./services/menu-service
-        run: bandit -r app/ -f json -o bandit-report.json || true
+        run: bandit -r app/ -f json -o bandit-report-menu.json || true
 
-      - name: Check dependencies for vulnerabilities
+      - name: Run Bandit security scan - Order Service
+        working-directory: ./services/order-service
+        run: bandit -r app/ -f json -o bandit-report-order.json || true
+
+      - name: Check dependencies for vulnerabilities - Menu Service
         working-directory: ./services/menu-service
         run: safety check --file requirements.txt || true
 
-      - name: Upload Bandit report
+      - name: Check dependencies for vulnerabilities - Order Service
+        working-directory: ./services/order-service
+        run: safety check --file requirements.txt || true
+
+      - name: Upload Bandit reports
         uses: actions/upload-artifact@v4
         with:
-          name: bandit-security-report
-          path: services/menu-service/bandit-report.json
+          name: bandit-security-reports
+          path: |
+            services/menu-service/bandit-report-menu.json
+            services/order-service/bandit-report-order.json
 
   docker:
     name: Docker Build
@@ -136,5 +218,15 @@ jobs:
           file: ./services/menu-service/Dockerfile
           push: false
           tags: smartmenu/menu-service:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build Order Service image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./services/order-service
+          file: ./services/order-service/Dockerfile
+          push: false
+          tags: smartmenu/order-service:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
