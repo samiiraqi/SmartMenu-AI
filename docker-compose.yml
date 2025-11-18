@@ -58,6 +58,29 @@ services:
     networks:
       - smartmenu-network
     restart: unless-stopped
+# Chatbot Service
+  chatbot-service:
+    build:
+      context: ./services/chatbot-service
+      dockerfile: Dockerfile
+    container_name: smartmenu-chatbot-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      menu-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://smartmenu_user:smartmenu_pass@postgres:5432/smartmenu_chatbot_db
+      MENU_SERVICE_URL: http://menu-service:8001
+      ORDER_SERVICE_URL: http://order-service:8002
+      DEBUG: "True"
+    ports:
+      - "8003:8003"
+    networks:
+      - smartmenu-network
+    restart: unless-stopped
 # Named volumes for data persistence
 volumes:
   postgres_data:
