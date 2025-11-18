@@ -41,6 +41,7 @@ services:
       options:
         max-size: 10m
         max-file: '3'
+    env_file: ./services/menu-service/.env
   order-service:
     build:
       context: ./services/order-service
@@ -61,6 +62,7 @@ services:
     - smartmenu-network
     restart: unless-stopped
     logging: *id001
+    env_file: ./services/order-service/.env
   chatbot-service:
     build:
       context: ./services/chatbot-service
@@ -84,6 +86,7 @@ services:
     - smartmenu-network
     restart: unless-stopped
     logging: *id001
+    env_file: ./services/chatbot-service/.env
   user-service:
     build:
       context: ./services/user-service
@@ -101,6 +104,7 @@ services:
     - smartmenu-network
     restart: unless-stopped
     logging: *id001
+    env_file: ./services/user-service/.env
   payment-service:
     build:
       context: ./services/payment-service
@@ -122,6 +126,7 @@ services:
     - smartmenu-network
     restart: unless-stopped
     logging: *id001
+    env_file: ./services/payment-service/.env
   notification-service:
     build:
       context: ./services/notification-service
@@ -139,6 +144,7 @@ services:
     - smartmenu-network
     restart: unless-stopped
     logging: *id001
+    env_file: ./services/notification-service/.env
   analytics-service:
     build:
       context: ./services/analytics-service

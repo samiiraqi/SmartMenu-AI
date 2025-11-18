@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  # Use production environment files from config/production/
+  # Update all service definitions to use .env.production files
+  
+  # Example for menu-service:
+  menu-service:
+    build: ./services/menu-service
+    env_file:
+      - ./config/production/menu-service.env
+    depends_on:
+      - postgres
+    networks:
+      - smartmenu-network
+    restart: always
+    
+  # ... (add other services similarly)
+
+networks:
+  smartmenu-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
