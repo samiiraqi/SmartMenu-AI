@@ -201,11 +201,11 @@ def seed_order_data():
     db.commit()
     print(f"✅ Successfully seeded {len(orders)} orders!")
     print("\n📊 Order Status Summary:")
-    print(f"  Delivered: 1")
-    print(f"  Ready: 1")
-    print(f"  Preparing: 1")
-    print(f"  Confirmed: 1")
-    print(f"  Pending: 1")
+    print("  Delivered: 1")
+    print("  Ready: 1")
+    print("  Preparing: 1")
+    print("  Confirmed: 1")
+    print("  Pending: 1")
     db.close()
 
 
