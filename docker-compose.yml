@@ -160,6 +160,25 @@ services:
     networks:
       - smartmenu-network
     restart: unless-stopped
+# API Gateway (Nginx)
+  api-gateway:
+    image: nginx:alpine
+    container_name: smartmenu-api-gateway
+    depends_on:
+      - menu-service
+      - order-service
+      - chatbot-service
+      - user-service
+      - payment-service
+      - notification-service
+      - analytics-service
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    networks:
+      - smartmenu-network
+    restart: unless-stopped
 # Named volumes for data persistence
 volumes:
   postgres_data:
