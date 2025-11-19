@@ -1,7 +1,6 @@
 import re
 
 
-
 def validate_price(price: float) -> bool:
     """Validate price is positive and reasonable"""
     return 0 < price < 10000
