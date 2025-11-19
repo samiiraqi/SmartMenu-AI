@@ -1,5 +1,5 @@
 import re
-from typing import Optional
+
 
 
 def validate_price(price: float) -> bool:
