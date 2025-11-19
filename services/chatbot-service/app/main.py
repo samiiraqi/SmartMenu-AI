@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
 from app.config.settings import settings
 from app.routes import chatbot_routes
 
@@ -11,41 +10,19 @@ app = FastAPI(
     description="AI Chatbot Service for SmartMenu - Natural language assistant",
 )
 
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.allowed_origins_list,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# CORS is handled by nginx API gateway, so we comment this out to avoid conflicts
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=settings.allowed_origins_list,
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
 
 # Include routers
 app.include_router(chatbot_routes.router, prefix=settings.API_PREFIX)
 
-
 # Health check endpoint
 @app.get("/health")
 async def health_check():
-    """
-    Health check endpoint
-    """
-    return {
-        "status": "healthy",
-        "service": settings.APP_NAME,
-        "version": settings.APP_VERSION,
-    }
-
-
-# Root endpoint
-@app.get("/")
-async def root():
-    """
-    Root endpoint - API information
-    """
-    return {
-        "message": f"Welcome to {settings.APP_NAME}",
-        "version": settings.APP_VERSION,
-        "docs": "/docs",
-        "health": "/health",
-    }
+    return {"status": "healthy", "service": "chatbot-service"}
