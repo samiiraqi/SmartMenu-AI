@@ -18,5 +18,5 @@ def validate_special_instructions(instructions: str) -> bool:
 
 def sanitize_string(value: str) -> str:
     """Remove potentially dangerous characters"""
-    value = re.sub(r'<[^>]*>', '', value)
+    value = re.sub(r"<[^>]*>", "", value)
     return value.strip()

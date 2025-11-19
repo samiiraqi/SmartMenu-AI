@@ -19,16 +19,25 @@ def validate_name(name: str) -> bool:
 
 def validate_category(category: str) -> bool:
     """Validate category name"""
-    allowed_categories = ["Pizza", "Pasta", "Burgers", "Salads", "Desserts", "Drinks", "Appetizers", "Main Course"]
+    allowed_categories = [
+        "Pizza",
+        "Pasta",
+        "Burgers",
+        "Salads",
+        "Desserts",
+        "Drinks",
+        "Appetizers",
+        "Main Course",
+    ]
     return category in allowed_categories or (1 <= len(category.strip()) <= 50)
 
 
 def sanitize_string(value: str) -> str:
     """Remove potentially dangerous characters"""
     # Remove HTML tags
-    value = re.sub(r'<[^>]*>', '', value)
+    value = re.sub(r"<[^>]*>", "", value)
     # Remove SQL keywords (basic protection)
-    dangerous_patterns = ['DROP', 'DELETE', 'INSERT', 'UPDATE', 'SELECT', '--', ';']
+    dangerous_patterns = ["DROP", "DELETE", "INSERT", "UPDATE", "SELECT", "--", ";"]
     for pattern in dangerous_patterns:
-        value = value.replace(pattern, '')
+        value = value.replace(pattern, "")
     return value.strip()
