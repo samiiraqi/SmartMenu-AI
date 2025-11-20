@@ -191,3 +191,8 @@ volumes:
 networks:
   smartmenu-network:
     driver: bridge
+
+# NOTE: Add these environment variables to order-service:
+#   STRIPE_SECRET_KEY: sk_test_YOUR_SECRET_KEY
+#   STRIPE_PUBLISHABLE_KEY: pk_test_YOUR_PUBLISHABLE_KEY
+#   FRONTEND_URL: http://localhost:3001

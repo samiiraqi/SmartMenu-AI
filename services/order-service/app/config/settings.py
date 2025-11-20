@@ -1,32 +1,24 @@
-from typing import List
-
+import os
 from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    APP_NAME: str = "Order Service"
-    APP_VERSION: str = "1.0.0"
-    API_PREFIX: str = "/api/v1"
-    DEBUG: bool = False
+    # Database
+    DATABASE_URL: str = os.getenv(
+        "DATABASE_URL", "postgresql://smartmenu:smartmenu123@postgres:5432/smartmenu_db"
+    )
 
-    DATABASE_URL: str
+    # Services
+    MENU_SERVICE_URL: str = os.getenv("MENU_SERVICE_URL", "http://menu-service:8001")
+    
+    # Frontend
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3001")
 
-    SECRET_KEY: str = "your-secret-key-change-in-production"
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
-
-    ALLOWED_ORIGINS: str = "http://localhost:3000,http://localhost:8000"
-
-    MENU_SERVICE_URL: str = "http://localhost:8001"
+    # Other
+    MAX_CONVERSATION_HISTORY: int = 10
 
     class Config:
         env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = True
-
-    @property
-    def allowed_origins_list(self) -> List[str]:
-        return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",")]
 
 
 settings = Settings()
