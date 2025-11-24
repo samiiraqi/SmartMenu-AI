@@ -1,0 +1,90 @@
+# ============================================
+# MENU SERVICE
+# ============================================
+# Manages restaurant menus and menu items
+# ============================================
+
+# -----------------------------------------
+# DEPLOYMENT (runs the pods)
+# -----------------------------------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: menu-service
+  namespace: smartmenu
+  labels:
+    app: menu-service
+spec:
+  replicas: 2  # Run 2 copies for reliability
+  
+  selector:
+    matchLabels:
+      app: menu-service
+  
+  template:
+    metadata:
+      labels:
+        app: menu-service
+    spec:
+      containers:
+        - name: menu-service
+          image: ECR_REGISTRY/smartmenu-menu-service:IMAGE_TAG
+          
+          ports:
+            - containerPort: 8001
+              name: http
+          
+          # Environment variables
+          env:
+            - name: PORT
+              value: "8001"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: smartmenu-secrets
+                  key: database_url
+          
+          # Health checks
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8001
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          
+          # Resource limits
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+
+---
+# -----------------------------------------
+# SERVICE (internal load balancer)
+# -----------------------------------------
+apiVersion: v1
+kind: Service
+metadata:
+  name: menu-service
+  namespace: smartmenu
+  labels:
+    app: menu-service
+spec:
+  type: ClusterIP  # Internal only
+  selector:
+    app: menu-service
+  ports:
+    - port: 8001
+      targetPort: 8001
+      protocol: TCP
+      name: http

@@ -1,0 +1,14 @@
+# ============================================
+# NAMESPACE
+# ============================================
+# Creates a logical group for all SmartMenu resources
+# Like a folder to organize your apps
+# ============================================
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: smartmenu
+  labels:
+    name: smartmenu
+    app: smartmenu

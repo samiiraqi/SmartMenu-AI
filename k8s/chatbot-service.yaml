@@ -1,0 +1,88 @@
+# ============================================
+# CHATBOT SERVICE
+# ============================================
+# AI chatbot for customer interaction
+# ============================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chatbot-service
+  namespace: smartmenu
+  labels:
+    app: chatbot-service
+spec:
+  replicas: 2
+  
+  selector:
+    matchLabels:
+      app: chatbot-service
+  
+  template:
+    metadata:
+      labels:
+        app: chatbot-service
+    spec:
+      containers:
+        - name: chatbot-service
+          image: ECR_REGISTRY/smartmenu-chatbot-service:IMAGE_TAG
+          
+          ports:
+            - containerPort: 8003
+              name: http
+          
+          env:
+            - name: PORT
+              value: "8003"
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: smartmenu-secrets
+                  key: database_url
+            - name: MENU_SERVICE_URL
+              value: "http://menu-service:8001"
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: smartmenu-secrets
+                  key: openai_api_key
+          
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8003
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "400m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chatbot-service
+  namespace: smartmenu
+  labels:
+    app: chatbot-service
+spec:
+  type: ClusterIP
+  selector:
+    app: chatbot-service
+  ports:
+    - port: 8003
+      targetPort: 8003
+      protocol: TCP
+      name: http
