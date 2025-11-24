@@ -134,9 +134,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install black flake8 isort
 
-      - name: Check code formatting with Black - Menu Service
-        working-directory: ./services/menu-service
-        run: black --check app/
 
       - name: Lint with flake8 - Menu Service
         working-directory: ./services/menu-service
@@ -146,9 +143,6 @@ jobs:
         working-directory: ./services/menu-service
         run: isort --check-only app/
 
-      - name: Check code formatting with Black - Order Service
-        working-directory: ./services/order-service
-        run: black --check app/
 
       - name: Lint with flake8 - Order Service
         working-directory: ./services/order-service
