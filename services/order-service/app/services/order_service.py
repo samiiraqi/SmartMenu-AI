@@ -75,7 +75,13 @@ class OrderService:
     @staticmethod
     def get_all_orders(db: Session, skip: int = 0, limit: int = 100):
         """Get all orders"""
-        return db.query(Order).order_by(Order.created_at.desc()).offset(skip).limit(limit).all()
+        return (
+            db.query(Order)
+            .order_by(Order.created_at.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
 
     @staticmethod
     def get_order(db: Session, order_id: int):
@@ -124,10 +130,10 @@ class OrderService:
 
         order.status = "cancelled"
         db.commit()
-        
+
         # Broadcast cancellation
         asyncio.create_task(
             broadcast_order_status(order.id, order.table_number, order.status)
         )
-        
+
         return True

@@ -26,9 +26,11 @@ app.include_router(order_routes.router, prefix="/api")
 
 socket_app = socketio.ASGIApp(sio, app)
 
+
 @app.get("/")
 def read_root():
     return {"message": "Order Service is running"}
+
 
 @app.get("/health")
 def health_check():
