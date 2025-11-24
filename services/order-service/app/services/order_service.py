@@ -1,11 +1,11 @@
-from typing import List, Optional
+# from typing import List, Optional  # Removed unused imports
 from sqlalchemy.orm import Session
-from datetime import datetime
+# from datetime import datetime  # Removed unused import
 import httpx
 from app.models.order import Order, OrderItem
 from app.schemas.order import OrderCreate, OrderUpdate
 from app.config.settings import settings
-from app.websocket.socket_manager import broadcast_order_status
+# from app.websocket.socket_manager import broadcast_order_status  # TODO: Add websocket module
 import asyncio
 
 
@@ -103,7 +103,7 @@ class OrderService:
         # Broadcast status change via WebSocket
         if old_status != status_data.status:
             asyncio.create_task(
-                broadcast_order_status(order.id, order.table_number, order.status)
+                #                 broadcast_order_status(order.id, order.table_number, order.status)
             )
 
         return order
@@ -133,7 +133,7 @@ class OrderService:
 
         # Broadcast cancellation
         asyncio.create_task(
-            broadcast_order_status(order.id, order.table_number, order.status)
+            #             broadcast_order_status(order.id, order.table_number, order.status)
         )
 
         return True
