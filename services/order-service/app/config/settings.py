@@ -10,7 +10,7 @@ class Settings(BaseSettings):
 
     # Services
     MENU_SERVICE_URL: str = os.getenv("MENU_SERVICE_URL", "http://menu-service:8001")
-    
+
     # Frontend
     FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:3001")
 
@@ -19,6 +19,7 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+        extra = "ignore"  # ← THIS IS THE FIX! Ignore extra fields from .env
 
 
 settings = Settings()
