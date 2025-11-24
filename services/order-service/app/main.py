@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.config.database import Base, engine
 # import socketio
 from app.routes import order_routes
-from app.config.database import Base, engine
 
 # from app.websocket.socket_manager import sio
 

@@ -1,11 +1,11 @@
 # from typing import List, Optional  # Removed unused imports
-from sqlalchemy.orm import Session
-
 # from datetime import datetime  # Removed unused import
 import httpx
+from sqlalchemy.orm import Session
+
+from app.config.settings import settings
 from app.models.order import Order, OrderItem
 from app.schemas.order import OrderCreate
-from app.config.settings import settings
 
 # from app.websocket.socket_manager import broadcast_order_status  # TODO: Add websocket module
 
