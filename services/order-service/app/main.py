@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import socketio
+# import socketio
 from app.routes import order_routes
 from app.config.database import Base, engine
-from app.websocket.socket_manager import sio
+# from app.websocket.socket_manager import sio
 
 Base.metadata.create_all(bind=engine)
 
@@ -24,7 +24,7 @@ app.add_middleware(
 # Include routes
 app.include_router(order_routes.router, prefix="/api")
 
-socket_app = socketio.ASGIApp(sio, app)
+# socket_app = socketio.ASGIApp(sio, app)
 
 
 @app.get("/")
