@@ -404,3 +404,4 @@ Give a ⭐️ if this project helped you learn microservices architecture!
 [Report Bug](https://github.com/samiiraqi/SmartMenu-AI/issues) · [Request Feature](https://github.com/samiiraqi/SmartMenu-AI/issues)
 
 </div>
+# Deploy test
