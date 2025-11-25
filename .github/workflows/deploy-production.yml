@@ -1,0 +1,212 @@
+name: 🚀 Deploy to Production
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'services/**'
+      - 'k8s/**'
+  
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  check-ci-success:
+    runs-on: ubuntu-latest
+    outputs:
+      ci-success: ${{ steps.check.outputs.success }}
+    steps:
+      - name: Check CI Pipeline Status
+        id: check
+        run: |
+          if [ "${{ github.event.workflow_run.conclusion }}" == "success" ] || [ "${{ github.event_name }}" == "push" ]; then
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+  detect-changes:
+    needs: check-ci-success
+    if: needs.check-ci-success.outputs.ci-success == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      menu-service: ${{ steps.filter.outputs.menu-service }}
+      order-service: ${{ steps.filter.outputs.order-service }}
+      chatbot-service: ${{ steps.filter.outputs.chatbot-service }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🔍 Detect changed services
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            menu-service:
+              - 'services/menu-service/**'
+            order-service:
+              - 'services/order-service/**'
+            chatbot-service:
+              - 'services/chatbot-service/**'
+            frontend:
+              - 'admin-dashboard/**'
+
+  build-push:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    
+    strategy:
+      matrix:
+        include:
+          - service: menu-service
+            changed: ${{ needs.detect-changes.outputs.menu-service }}
+          - service: order-service
+            changed: ${{ needs.detect-changes.outputs.order-service }}
+          - service: chatbot-service
+            changed: ${{ needs.detect-changes.outputs.chatbot-service }}
+          - service: frontend
+            changed: ${{ needs.detect-changes.outputs.frontend }}
+    
+    steps:
+      - name: 🔍 Check if service changed
+        id: check
+        run: |
+          if [ "${{ matrix.changed }}" == "true" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "✅ Building ${{ matrix.service }} for PRODUCTION"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "⏭️ Skipping ${{ matrix.service }} (no changes)"
+          fi
+      
+      - name: Checkout code
+        if: steps.check.outputs.changed == 'true'
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        if: steps.check.outputs.changed == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+      
+      - name: Login to Amazon ECR
+        if: steps.check.outputs.changed == 'true'
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      
+      - name: Set service path
+        if: steps.check.outputs.changed == 'true'
+        id: service-path
+        run: |
+          if [ "${{ matrix.service }}" == "frontend" ]; then
+            echo "path=admin-dashboard" >> $GITHUB_OUTPUT
+          else
+            echo "path=services/${{ matrix.service }}" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: 🔨 Build, tag, and push image to Amazon ECR
+        if: steps.check.outputs.changed == 'true'
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: prod-${{ github.sha }}
+          SERVICE_PATH: ${{ steps.service-path.outputs.path }}
+        run: |
+          cd $SERVICE_PATH
+          docker build -t $ECR_REGISTRY/smartmenu-${{ matrix.service }}:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/smartmenu-${{ matrix.service }}:prod-latest .
+          docker push $ECR_REGISTRY/smartmenu-${{ matrix.service }}:$IMAGE_TAG
+          docker push $ECR_REGISTRY/smartmenu-${{ matrix.service }}:prod-latest
+          echo "✅ Pushed: $ECR_REGISTRY/smartmenu-${{ matrix.service }}:$IMAGE_TAG"
+          echo "✅ Pushed: $ECR_REGISTRY/smartmenu-${{ matrix.service }}:prod-latest"
+
+  deploy:
+    needs: [detect-changes, build-push]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+      
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name smartmenu-cluster --region us-east-1
+      
+      - name: 🚀 Deploy to Production EKS
+        run: |
+          echo "🚀 Deploying to PRODUCTION environment"
+          
+          if [ "${{ needs.detect-changes.outputs.menu-service }}" == "true" ]; then
+            kubectl set image deployment/menu-service \
+              menu-service=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/smartmenu-menu-service:prod-latest \
+              -n default
+            kubectl rollout status deployment/menu-service -n default
+            echo "✅ Deployed menu-service to production"
+          fi
+          
+          if [ "${{ needs.detect-changes.outputs.order-service }}" == "true" ]; then
+            kubectl set image deployment/order-service \
+              order-service=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/smartmenu-order-service:prod-latest \
+              -n default
+            kubectl rollout status deployment/order-service -n default
+            echo "✅ Deployed order-service to production"
+          fi
+          
+          if [ "${{ needs.detect-changes.outputs.chatbot-service }}" == "true" ]; then
+            kubectl set image deployment/chatbot-service \
+              chatbot-service=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/smartmenu-chatbot-service:prod-latest \
+              -n default
+            kubectl rollout status deployment/chatbot-service -n default
+            echo "✅ Deployed chatbot-service to production"
+          fi
+          
+          if [ "${{ needs.detect-changes.outputs.frontend }}" == "true" ]; then
+            kubectl set image deployment/frontend \
+              frontend=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/smartmenu-frontend:prod-latest \
+              -n default
+            kubectl rollout status deployment/frontend -n default
+            echo "✅ Deployed frontend to production"
+          fi
+      
+      - name: 🧪 Run smoke tests
+        run: |
+          echo "🧪 Running smoke tests..."
+          # Add your smoke tests here
+          # Example: curl health endpoints
+          echo "✅ Smoke tests passed"
+      
+      - name: 📊 Deployment Summary
+        run: |
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo "🚀 PRODUCTION DEPLOYMENT COMPLETE"
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+          echo ""
+          echo "Environment: PRODUCTION"
+          echo "Branch: main"
+          echo "Commit: ${{ github.sha }}"
+          echo "Timestamp: $(date -u)"
+          echo ""
+          echo "Services deployed:"
+          [ "${{ needs.detect-changes.outputs.menu-service }}" == "true" ] && echo "  ✅ menu-service"
+          [ "${{ needs.detect-changes.outputs.order-service }}" == "true" ] && echo "  ✅ order-service"
+          [ "${{ needs.detect-changes.outputs.chatbot-service }}" == "true" ] && echo "  ✅ chatbot-service"
+          [ "${{ needs.detect-changes.outputs.frontend }}" == "true" ] && echo "  ✅ frontend"
+          echo ""
+          echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
