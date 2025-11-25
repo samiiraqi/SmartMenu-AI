@@ -1,0 +1,153 @@
+name: 🧪 Deploy to Staging
+
+on:
+  push:
+    branches: [develop]
+    paths:
+      - 'services/**'
+      - 'k8s/**'
+  
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types: [completed]
+    branches: [develop]
+
+jobs:
+  check-ci-success:
+    runs-on: ubuntu-latest
+    outputs:
+      ci-success: ${{ steps.check.outputs.success }}
+    steps:
+      - name: Check CI Pipeline Status
+        id: check
+        run: |
+          if [ "${{ github.event.workflow_run.conclusion }}" == "success" ] || [ "${{ github.event_name }}" == "push" ]; then
+            echo "success=true" >> $GITHUB_OUTPUT
+          else
+            echo "success=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+  detect-changes:
+    needs: check-ci-success
+    if: needs.check-ci-success.outputs.ci-success == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      menu-service: ${{ steps.filter.outputs.menu-service }}
+      order-service: ${{ steps.filter.outputs.order-service }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🔍 Detect changed services
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            menu-service:
+              - 'services/menu-service/**'
+            order-service:
+              - 'services/order-service/**'
+
+  build-push:
+    needs: detect-changes
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    
+    strategy:
+      matrix:
+        include:
+          - service: menu-service
+            changed: ${{ needs.detect-changes.outputs.menu-service }}
+          - service: order-service
+            changed: ${{ needs.detect-changes.outputs.order-service }}
+    
+    steps:
+      - name: 🔍 Check if service changed
+        id: check
+        run: |
+          if [ "${{ matrix.changed }}" == "true" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "✅ Building ${{ matrix.service }} for STAGING"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "⏭️ Skipping ${{ matrix.service }} (no changes)"
+          fi
+      
+      - name: Checkout code
+        if: steps.check.outputs.changed == 'true'
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        if: steps.check.outputs.changed == 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+      
+      - name: Login to Amazon ECR
+        if: steps.check.outputs.changed == 'true'
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      
+      - name: 🔨 Build, tag, and push image to Amazon ECR
+        if: steps.check.outputs.changed == 'true'
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: staging-${{ github.sha }}
+        run: |
+          cd services/${{ matrix.service }}
+          docker build -t $ECR_REGISTRY/smartmenu-${{ matrix.service }}:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/smartmenu-${{ matrix.service }}:staging-latest .
+          docker push $ECR_REGISTRY/smartmenu-${{ matrix.service }}:$IMAGE_TAG
+          docker push $ECR_REGISTRY/smartmenu-${{ matrix.service }}:staging-latest
+          echo "✅ Pushed: $ECR_REGISTRY/smartmenu-${{ matrix.service }}:$IMAGE_TAG"
+
+  deploy:
+    needs: [detect-changes, build-push]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+      
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name smartmenu-cluster --region us-east-1
+      
+      - name: 🚀 Deploy to Staging EKS
+        run: |
+          echo "🧪 Deploying to STAGING environment"
+          
+          if [ "${{ needs.detect-changes.outputs.menu-service }}" == "true" ]; then
+            kubectl set image deployment/menu-service \
+              menu-service=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/smartmenu-menu-service:staging-latest \
+              -n default
+            echo "✅ Deployed menu-service to staging"
+          fi
+          
+          if [ "${{ needs.detect-changes.outputs.order-service }}" == "true" ]; then
+            kubectl set image deployment/order-service \
+              order-service=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.us-east-1.amazonaws.com/smartmenu-order-service:staging-latest \
+              -n default
+            echo "✅ Deployed order-service to staging"
+          fi
+      
+      - name: 📊 Deployment Summary
+        run: |
+          echo "🧪 STAGING DEPLOYMENT COMPLETE"
+          echo "Environment: STAGING"
+          echo "Branch: develop"
+          echo "Commit: ${{ github.sha }}"
